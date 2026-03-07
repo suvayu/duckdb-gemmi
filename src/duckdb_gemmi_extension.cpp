@@ -7,6 +7,7 @@
 #include <duckdb/parser/parsed_data/create_scalar_function_info.hpp>
 
 // OpenSSL linked through vcpkg
+#include <gemmi/cif.hpp>
 #include <openssl/opensslv.h>
 
 namespace duckdb {

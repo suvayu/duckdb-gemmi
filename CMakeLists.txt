@@ -8,6 +8,21 @@ set(TARGET_NAME duckdb_gemmi)
 # Note that it should also be removed from vcpkg.json to prevent needlessly installing it..
 find_package(OpenSSL REQUIRED)
 
+include(FetchContent)
+FetchContent_Declare(
+  gemmi
+  GIT_REPOSITORY https://github.com/project-gemmi/gemmi.git
+  GIT_TAG        v0.7.5
+)
+FetchContent_GetProperties(gemmi)
+if (NOT gemmi_POPULATED)
+  FetchContent_Populate(gemmi)
+  add_subdirectory(${gemmi_SOURCE_DIR} ${gemmi_BINARY_DIR} EXCLUDE_FROM_ALL)
+endif()
+
+# fetch & build w/ zlib-ng statically (for gemmi)
+set(FETCH_ZLIB_NG ON)
+
 set(EXTENSION_NAME ${TARGET_NAME}_extension)
 set(LOADABLE_EXTENSION_NAME ${TARGET_NAME}_loadable_extension)
 
@@ -22,6 +37,15 @@ build_loadable_extension(${TARGET_NAME} " " ${EXTENSION_SOURCES})
 # Link OpenSSL in both the static library as the loadable extension
 target_link_libraries(${EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(${LOADABLE_EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto)
+
+
+# # link
+# target_link_libraries(${EXTENSION_NAME} PRIVATE gemmi::gemmi_cpp)
+# target_link_libraries(${LOADABLE_EXTENSION_NAME} PRIVATE gemmi::gemmi_cpp)
+
+# header only (CIF parsing only)
+target_link_libraries(${EXTENSION_NAME} PRIVATE gemmi::headers)
+target_link_libraries(${LOADABLE_EXTENSION_NAME} PRIVATE gemmi::headers)
 
 install(
   TARGETS ${EXTENSION_NAME}
