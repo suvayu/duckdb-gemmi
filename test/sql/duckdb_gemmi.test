@@ -1,0 +1,23 @@
+# name: test/sql/duckdb_gemmi.test
+# description: test duckdb_gemmi extension
+# group: [sql]
+
+# Before we load the extension, this will fail
+statement error
+SELECT duckdb_gemmi('Sam');
+----
+Catalog Error: Scalar Function with name duckdb_gemmi does not exist!
+
+# Require statement will ensure this test is run with this extension loaded
+require duckdb_gemmi
+
+# Confirm the extension works
+query I
+SELECT duckdb_gemmi('Sam');
+----
+DuckdbGemmi Sam 🐥
+
+query I
+SELECT duckdb_gemmi_openssl_version('Michael') ILIKE 'DuckdbGemmi Michael, my linked OpenSSL version is OpenSSL%';
+----
+true
