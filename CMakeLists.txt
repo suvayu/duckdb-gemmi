@@ -14,11 +14,7 @@ FetchContent_Declare(
   GIT_REPOSITORY https://github.com/project-gemmi/gemmi.git
   GIT_TAG        v0.7.5
 )
-FetchContent_GetProperties(gemmi)
-if (NOT gemmi_POPULATED)
-  FetchContent_Populate(gemmi)
-  add_subdirectory(${gemmi_SOURCE_DIR} ${gemmi_BINARY_DIR} EXCLUDE_FROM_ALL)
-endif()
+FetchContent_MakeAvailable(gemmi)
 
 # fetch & build w/ zlib-ng statically (for gemmi)
 set(FETCH_ZLIB_NG ON)
@@ -39,13 +35,14 @@ target_link_libraries(${EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto)
 target_link_libraries(${LOADABLE_EXTENSION_NAME} OpenSSL::SSL OpenSSL::Crypto)
 
 
-# # link
-# target_link_libraries(${EXTENSION_NAME} PRIVATE gemmi::gemmi_cpp)
-# target_link_libraries(${LOADABLE_EXTENSION_NAME} PRIVATE gemmi::gemmi_cpp)
-
-# header only (CIF parsing only)
-target_link_libraries(${EXTENSION_NAME} PRIVATE gemmi::headers)
-target_link_libraries(${LOADABLE_EXTENSION_NAME} PRIVATE gemmi::headers)
+# header only (CIF parsing only) - NOTE: cannot use keyword form
+# target_link_libraries, as duckdb uses the plain form, use include
+# directories directly to avoid export issues
+get_target_property(GEMMI_INCLUDE_DIRS gemmi::headers INTERFACE_INCLUDE_DIRECTORIES)
+target_include_directories(${EXTENSION_NAME} PRIVATE ${GEMMI_INCLUDE_DIRS})
+target_include_directories(${LOADABLE_EXTENSION_NAME} PRIVATE ${GEMMI_INCLUDE_DIRS})
+target_compile_features(${EXTENSION_NAME} PRIVATE cxx_std_14)
+target_compile_features(${LOADABLE_EXTENSION_NAME} PRIVATE cxx_std_14)
 
 install(
   TARGETS ${EXTENSION_NAME}
